@@ -1,0 +1,24 @@
+[{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc670"
+  },
+  "proyecto_id": {
+    "$ref": "proyectos",
+    "$id": {
+      "$oid": "67d1c098a493bc1150cfc66e"
+    }
+  },
+  "usuario_id": {
+    "$ref": "usuarios",
+    "$id": {
+      "$oid": "67d1c098a493bc1150cfc66a"
+    }
+  },
+  "resultados": {
+    "emocion": "felicidad",
+    "intensidad": 0.95
+  },
+  "fecha": {
+    "$date": "2025-03-12T17:12:56.424Z"
+  }
+}]

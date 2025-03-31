@@ -1,0 +1,14 @@
+[{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc677"
+  },
+  "nombre": "Umbral de detección",
+  "valor": "0.8"
+},
+{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc678"
+  },
+  "nombre": "Tiempo máximo de análisis",
+  "valor": "60"
+}]

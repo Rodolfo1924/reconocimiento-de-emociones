@@ -1,0 +1,28 @@
+[{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc673"
+  },
+  "nombre": "Felicidad",
+  "descripcion": "Emoción de Felicidad"
+},
+{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc674"
+  },
+  "nombre": "Tristeza",
+  "descripcion": "Emoción de Tristeza"
+},
+{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc675"
+  },
+  "nombre": "Enojo",
+  "descripcion": "Emoción de Enojo"
+},
+{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc676"
+  },
+  "nombre": "Sorpresa",
+  "descripcion": "Emoción de Sorpresa"
+}]

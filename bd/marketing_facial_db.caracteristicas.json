@@ -1,0 +1,18 @@
+[{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc66b"
+  },
+  "nombre": "Machine Learning"
+},
+{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc66c"
+  },
+  "nombre": "Deep Learning"
+},
+{
+  "_id": {
+    "$oid": "67d1c098a493bc1150cfc66d"
+  },
+  "nombre": "Procesamiento de Imágenes"
+}]
