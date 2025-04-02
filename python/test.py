@@ -27,7 +27,7 @@ class EmotionCNN(nn.Module):
         return x
 
 # 🔹 Cargar el modelo
-num_classes = 7  # Ajusta según las clases de tu dataset
+num_classes = 5
 model = EmotionCNN(num_classes)
 model.load_state_dict(torch.load("emotion_model.pth", map_location=torch.device('cpu')))
 model.eval()
@@ -59,5 +59,5 @@ def predict_image(image_path):
         print(f"Predicción: {predicted_label}")
 
 # 🔹 Prueba con una imagen de ejemplo
-image_path = "test_image.jpg"  # Reemplaza con la ruta de tu imagen de prueba
+image_path = "imagenes_test/test1.jpg"  # Reemplaza con la ruta de tu imagen de prueba
 predict_image(image_path)
