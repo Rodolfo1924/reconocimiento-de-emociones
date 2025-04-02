@@ -15,7 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Usando dispositivo: {device}")
 
 # Directorios de datos
-dataset_path = "images"  # Ajusta si es necesario
+dataset_path = "/workspaces/reconocimiento-de-emociones/dataset/images"  # Ajusta si es necesario
 train_path = os.path.join(dataset_path, "train")
 val_path = os.path.join(dataset_path, "validation")
 
