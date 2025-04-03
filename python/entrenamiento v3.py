@@ -117,7 +117,7 @@ def train_model(model, train_loader, val_loader, epochs=10):
               f"Val Loss: {val_loss/len(val_loader):.4f}, Val Accuracy: {100 * val_correct/val_total:.2f}%")
 
 # 🔹 Entrenar el modelo
-train_model(model, train_loader, val_loader, epochs=100)
+train_model(model, train_loader, val_loader, epochs=300w3)
 
 # 🔹 Guardar el modelo entrenado
 torch.save(model.state_dict(), "emotion_model.pth")
