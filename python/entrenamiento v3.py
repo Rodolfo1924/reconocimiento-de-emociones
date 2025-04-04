@@ -11,9 +11,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Usando dispositivo: {device}")
 
 # 🔹 Configurar rutas del dataset
-dataset_path = "/workspaces/reconocimiento-de-emociones/dataset/images"  
-train_path = os.path.join(dataset_path, "train")
-val_path = os.path.join(dataset_path, "validation")
+dataset_path = "/home/codespace/.cache/kagglehub/datasets/jonathanoheix/face-expression-recognition-dataset/versions/1/images"  
+train_path = os.path.join(dataset_path, "/home/codespace/.cache/kagglehub/datasets/jonathanoheix/face-expression-recognition-dataset/versions/1/images/train")
+val_path = os.path.join(dataset_path, "/home/codespace/.cache/kagglehub/datasets/jonathanoheix/face-expression-recognition-dataset/versions/1/images/validation")
 
 # 🔹 Verificar si las carpetas existen
 if not os.path.exists(train_path) or not os.path.exists(val_path):
@@ -117,8 +117,8 @@ def train_model(model, train_loader, val_loader, epochs=10):
               f"Val Loss: {val_loss/len(val_loader):.4f}, Val Accuracy: {100 * val_correct/val_total:.2f}%")
 
 # 🔹 Entrenar el modelo
-train_model(model, train_loader, val_loader, epochs=300w3)
+train_model(model, train_loader, val_loader, epochs=300)
 
 # 🔹 Guardar el modelo entrenado
-torch.save(model.state_dict(), "emotion_model.pth")
+torch.save(model.state_dict(), "modelo.pth")
 print("Modelo guardado correctamente.")
