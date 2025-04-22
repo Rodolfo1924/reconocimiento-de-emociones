@@ -7,7 +7,7 @@ import io
 app = Flask(__name__)
 
 # Cargar el modelo al iniciar el servidor
-modelo = torch.load('model.pt', map_location=torch.device('cpu'))
+modelo = torch.load('emotion_model.pth', map_location=torch.device('cpu'))
 modelo.eval()
 
 # Preprocesamiento de imagen
