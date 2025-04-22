@@ -1,9 +1,0 @@
-[{
-  "_id": {
-    "$oid": "67d1c098a493bc1150cfc66a"
-  },
-  "nombre": "Juan Pérez",
-  "email": "juan.perez@example.com",
-  "telefono": "555-1234",
-  "rol": "Analista de Marketing"
-}]
