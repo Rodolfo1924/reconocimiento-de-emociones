@@ -4,10 +4,14 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 import io
+import cv2
+import numpy as np
 
+# ------------------ CONFIGURACIÓN ------------------
 app = Flask(__name__)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# --------- Clase real usada al entrenar el modelo ---------
+# ------------------ MODELO DE EMOCIONES ------------------
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
         super(EmotionCNN, self).__init__()
@@ -29,36 +33,57 @@ class EmotionCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-# --------- Cargar modelo entrenado ---------
-num_classes = 5  
-modelo = EmotionCNN(num_classes)
-modelo.load_state_dict(torch.load("emotion_model.pth", map_location=torch.device("cpu")))
-modelo.eval()
+emotion_classes = ['Felicidad', 'Enojo', 'Tristeza', 'Sorpresa']
+emotion_model = EmotionCNN(num_classes=len(emotion_classes))
+emotion_model.load_state_dict(torch.load("emotion_model.pth", map_location=device))
+emotion_model.to(device).eval()
 
-# --------- Transformación de imagen ---------
+# ------------------ MODELO YOLO PERSONALIZADO ------------------
+yolo_model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov11n-face.pt", source="local")
+yolo_model.conf = 0.4  # Umbral de confianza (ajusta si hay falsos positivos)
+
+# ------------------ TRANSFORMACIÓN DE IMAGEN PARA EMOTIONCNN ------------------
 transform = transforms.Compose([
-    transforms.Grayscale(),            # Porque entrenaste en escala de grises (1 canal)
-    transforms.Resize((48, 48)),       # Ajusta si entrenaste con otro tamaño
+    transforms.Resize((48, 48)),
+    transforms.Grayscale(),
     transforms.ToTensor()
 ])
 
-# --------- Endpoint de predicción ---------
+# ------------------ ENDPOINT ------------------
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
-        return jsonify({'error': 'No se recibió imagen'}), 400
+        return jsonify({'error': 'No se recibió archivo'}), 400
 
     file = request.files['file']
-    image = Image.open(io.BytesIO(file.read())).convert("L")  # L = grayscale
+    image = Image.open(io.BytesIO(file.read())).convert("RGB")
+    img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
-    input_tensor = transform(image).unsqueeze(0)  # [1, 1, 48, 48]
+    # YOLO detección
+    results = yolo_model(img_cv)
+    detecciones = results.xyxy[0].cpu().numpy()
 
-    with torch.no_grad():
-        output = modelo(input_tensor)
-        pred = torch.argmax(output, dim=1).item()
+    emociones_detectadas = []
 
-    emociones = ['Felicidad', 'Enojo', 'Tristeza', 'Sorpresa']  # Personaliza según tu dataset
+    for det in detecciones:
+        x1, y1, x2, y2, _, _ = map(int, det[:6])
+        rostro = img_cv[y1:y2, x1:x2]
+
+        if rostro.size == 0:
+            continue
+
+        rostro_pil = Image.fromarray(cv2.cvtColor(rostro, cv2.COLOR_BGR2RGB)).convert("L")
+        tensor = transform(rostro_pil).unsqueeze(0).to(device)
+
+        with torch.no_grad():
+            salida = emotion_model(tensor)
+            pred = torch.argmax(salida, dim=1).item()
+            emociones_detectadas.append(emotion_classes[pred])
+
     return jsonify({
-        'prediction': emociones[pred],
-        'class_index': pred
+        "emociones": emociones_detectadas if emociones_detectadas else ["No se detectaron rostros"]
     })
+
+# ------------------ INICIAR ------------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
