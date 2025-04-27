@@ -1,16 +1,10 @@
-# --- Framework principal
-flask
-gunicorn
-
-# --- Machine Learning
-torch
-torchvision
-
-# --- Procesamiento de Imágenes
-pillow
-opencv-python-headless
-
-# --- Utilidades de predicción YOLOv5
-pandas
-numpy
-requests
+flask==2.3.2
+gunicorn==20.1.0
+torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
+torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
+pillow==10.0.0
+opencv-python-headless==4.7.0.72
+pandas==2.0.3
+numpy==1.24.3
+requests==2.31.0
+ultralytics==8.0.196
