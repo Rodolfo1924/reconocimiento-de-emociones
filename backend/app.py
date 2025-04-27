@@ -41,7 +41,7 @@ emotion_model.to(device).eval()
 
 
 # ------------------ MODELO YOLO PERSONALIZADO ------------------
-yolo_model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov11n-face.pt", source="local")
+yolo_model = torch.hub.load("backend/yolov11n-face.pt", "custom", path="yolov11n-face.pt")
 yolo_model.conf = 0.4  # Umbral de confianza (ajusta si hay falsos positivos)
 
 # ------------------ TRANSFORMACIÓN DE IMAGEN PARA EMOTIONCNN ------------------
