@@ -33,10 +33,12 @@ class EmotionCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-emotion_classes = ['Felicidad', 'Enojo', 'Tristeza', 'Sorpresa']
+# ------------------ MODELO DE EMOCIONES ------------------
+emotion_classes = ['Felicidad', 'Enojo', 'Tristeza', 'Sorpresa', 'Neutral']  # <-- 5 clases
 emotion_model = EmotionCNN(num_classes=len(emotion_classes))
 emotion_model.load_state_dict(torch.load("emotion_model.pth", map_location=device))
 emotion_model.to(device).eval()
+
 
 # ------------------ MODELO YOLO PERSONALIZADO ------------------
 yolo_model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov11n-face.pt", source="local")
