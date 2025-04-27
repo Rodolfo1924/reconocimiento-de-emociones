@@ -1,8 +1,16 @@
+# --- Framework principal
 flask
+gunicorn
+
+# --- Machine Learning
 torch
 torchvision
+
+# --- Procesamiento de Imágenes
 pillow
-numpy
 opencv-python-headless
-gunicorn
+
+# --- Utilidades de predicción YOLOv5
 pandas
+numpy
+requests
