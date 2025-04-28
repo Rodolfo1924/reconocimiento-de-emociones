@@ -6,6 +6,7 @@ from PIL import Image
 import io
 import cv2
 import numpy as np
+from ultralytics import YOLO
 
 # ------------------ CONFIGURACIÓN ------------------
 app = Flask(__name__)
@@ -41,7 +42,7 @@ emotion_model.to(device).eval()
 
 
 # ------------------ MODELO YOLO PERSONALIZADO ------------------
-yolo_model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+yolo_model = YOLO('yolov5n.pt')
 yolo_model.conf = 0.4  # Umbral de confianza (ajusta si hay falsos positivos)
 
 # ------------------ TRANSFORMACIÓN DE IMAGEN PARA EMOTIONCNN ------------------
