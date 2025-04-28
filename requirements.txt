@@ -1,0 +1,19 @@
+# Paquetes principales
+flask==2.3.2
+gunicorn==20.1.0
+
+# PyTorch (versión CPU para ahorrar memoria)
+torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
+torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
+
+# Procesamiento de imágenes
+opencv-python-headless==4.7.0.72  # Versión sin dependencias GUI
+pillow==10.0.0
+
+# YOLOv5 y dependencias
+ultralytics==8.0.196
+numpy==1.24.3
+pandas==2.0.3
+
+# Utilidades
+requests==2.31.0
