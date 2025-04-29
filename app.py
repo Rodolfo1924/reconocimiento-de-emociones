@@ -7,6 +7,11 @@ import io
 import cv2
 import numpy as np
 from ultralytics import YOLO
+from flask_cors import CORS
+
+#-------------------front--------------------------
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "https://reconocimiento-de-emociones-f4f7.vercel.app/"}})
 
 # ------------------ CONFIGURACIÓN ------------------
 app = Flask(__name__)
