@@ -17,3 +17,6 @@ pandas==2.0.3
 
 # Utilidades
 requests==2.31.0
+
+# flask
+flask-cors
