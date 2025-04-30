@@ -20,3 +20,8 @@ requests==2.31.0
 
 # flask
 flask-cors
+
+#db
+flask
+pymongo
+dnspython
