@@ -8,8 +8,11 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 from flask_cors import CORS
+from flask import Flask, request, jsonify
+from db import usuarios_col
+import os
 
-#-------------------front--------------------------
+#------------------- front --------------------------
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://reconocimiento-de-emociones-f4f7.vercel.app/"}})
 
@@ -91,6 +94,46 @@ def predict():
     return jsonify({
         "emociones": emociones_detectadas if emociones_detectadas else ["No se detectaron rostros"]
     })
+
+#------------------- bd y login ----------------
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Faltan campos"}), 400
+
+    usuario = usuarios_col.find_one({"email": email})
+
+    if not usuario or usuario.get("password") != password:
+        return jsonify({"error": "Credenciales inválidas"}), 401
+
+    return jsonify({"message": "Login exitoso", "usuario": usuario["nombre"]})
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    nombre = data.get("nombre")
+    email = data.get("email")
+    password = data.get("password")
+
+    if not nombre or not email or not password:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
+
+    if usuarios_col.find_one({"email": email}):
+        return jsonify({"error": "Correo ya registrado"}), 409
+
+    usuarios_col.insert_one({
+        "nombre": nombre,
+        "email": email,
+        "password": password  # En producción, usa hash
+    })
+
+    return jsonify({"message": "Registro exitoso"}), 201
 
 # ------------------ INICIAR ------------------
 if __name__ == "__main__":
