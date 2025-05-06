@@ -50,7 +50,7 @@ emotion_model.to(device).eval()
 
 
 # ------------------ MODELO YOLO PERSONALIZADO ------------------
-yolo_model = YOLO('modelyolov5n.pt')
+yolo_model = YOLO('yolov5n.pt')
 yolo_model.conf = 0.4  # Umbral de confianza (ajusta si hay falsos positivos)
 
 # ------------------ TRANSFORMACIÓN DE IMAGEN PARA EMOTIONCNN ------------------
