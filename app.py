@@ -67,3 +67,7 @@ def predict():
         return jsonify({"emocion": emotion})
     except Exception as e:
         return jsonify({"error": f"Error al procesar la imagen: {str(e)}"}), 500
+        
+@app.route("/", methods=["GET"])
+def home():
+    return "API de reconocimiento de emociones funcionando."
