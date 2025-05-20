@@ -4,10 +4,12 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
+import os
+import gdown
 
 # Inicializa app Flask y CORS
 app = Flask(__name__)
-CORS(app)  # Permitir peticiones de cualquier origen (o define origins)
+CORS(app)
 
 # Dispositivo
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -31,9 +33,16 @@ class EmotionNet(nn.Module):
     def forward(self, x):
         return self.fc(x)
 
+# Modelo path y descarga si no existe
+model_path = 'emotion_model_ligero.pth'
+if not os.path.exists(model_path):
+    print("Descargando modelo desde Google Drive...")
+    url = "https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3"
+    gdown.download(url, model_path, quiet=False)
+
 # Cargar modelo
 model = EmotionNet()
-model.load_state_dict(torch.load('https://github.com/Rodolfo1924/reconocimiento-de-emociones/blob/75e0d993305e14d2de6ceb4c7ec68987d84cc5d9/emotion_model_ligero.pth', map_location=device))
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 model.to(device)
 
