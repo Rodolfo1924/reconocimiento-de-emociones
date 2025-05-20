@@ -33,8 +33,7 @@ class EmotionNet(nn.Module):
 
 # Cargar modelo
 model = EmotionNet()
-model.load_state_dict(torch.load('reconocimiento-de-emociones
-/emotion_model_ligero.pth', map_location=device))
+model.load_state_dict(torch.load('https://github.com/Rodolfo1924/reconocimiento-de-emociones/blob/75e0d993305e14d2de6ceb4c7ec68987d84cc5d9/emotion_model_ligero.pth', map_location=device))
 model.eval()
 model.to(device)
 
