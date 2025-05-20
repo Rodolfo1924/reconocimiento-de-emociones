@@ -4,8 +4,8 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
-import os
 import gdown
+import os
 
 # Inicializa app Flask y CORS
 app = Flask(__name__)
@@ -17,37 +17,40 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Clases detectadas
 clases = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 
-# Define arquitectura ligera
-class EmotionNet(nn.Module):
-    def __init__(self):
-        super(EmotionNet, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(48 * 48 * 3, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, len(clases))
-        )
+# Modelo CNN original
+class EmotionCNN(nn.Module):
+    def __init__(self, num_classes):
+        super(EmotionCNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(64 * 12 * 12, 128)
+        self.fc2 = nn.Linear(128, num_classes)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
-        return self.fc(x)
+        x = self.pool(self.relu(self.conv1(x)))
+        x = self.pool(self.relu(self.conv2(x)))
+        x = x.view(-1, 64 * 12 * 12)
+        x = self.dropout(self.relu(self.fc1(x)))
+        x = self.fc2(x)
+        return x
 
-# Modelo path y descarga si no existe
-model_path = 'emotion_model_ligero.pth'
+# Descargar modelo si no existe
+model_path = 'modelo_ligero.pth'
 if not os.path.exists(model_path):
-    print("Descargando modelo desde Google Drive...")
-    url = "https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3"
+    url = 'https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3'
     gdown.download(url, model_path, quiet=False)
 
 # Cargar modelo
-model = EmotionNet()
+model = EmotionCNN(num_classes=len(clases)).to(device)
 model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
-model.to(device)
 
 # Transformación de imagen
 transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
     transforms.Resize((48, 48)),
     transforms.ToTensor(),
 ])
