@@ -17,7 +17,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Clases detectadas
 clases = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 
-# Modelo CNN original
+# Modelo CNN
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
         super(EmotionCNN, self).__init__()
@@ -37,7 +37,16 @@ class EmotionCNN(nn.Module):
         x = self.fc2(x)
         return x
 
+# Descargar modelo si no existe
+if not os.path.exists('modelo_ligero.pth'):
+    url = 'https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3'
+    gdown.download(url, 'modelo_ligero.pth', quiet=False)
+
+# Inicializar modelo
+num_classes = len(clases)
+model = EmotionCNN(num_classes).to(device)
 model.load_state_dict(torch.load('modelo_ligero.pth', map_location=device))
+model.eval()
 
 # Transformación de imagen
 transform = transforms.Compose([
@@ -72,5 +81,6 @@ def predict():
 
     return jsonify({'emocion': emocion})
 
+# Para correr localmente
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
