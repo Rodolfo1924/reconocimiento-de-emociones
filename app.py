@@ -37,16 +37,7 @@ class EmotionCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-# Descargar modelo si no existe
-model_path = 'modelo_ligero.pth'
-if not os.path.exists(model_path):
-    url = 'https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3'
-    gdown.download(url, model_path, quiet=False)
-
-# Cargar modelo
-model = EmotionCNN(num_classes=len(clases)).to(device)
-model.load_state_dict(torch.load(model_path, map_location=device))
-model.eval()
+model.load_state_dict(torch.load('modelo_ligero.pth', map_location=device))
 
 # Transformación de imagen
 transform = transforms.Compose([
