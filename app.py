@@ -7,7 +7,7 @@ from PIL import Image
 
 # Configuración
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*")  # Permitir todas las solicitudes (o específica si prefieres)
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
 
 # Modelo CNN
@@ -74,4 +74,4 @@ def predict():
 
 # Iniciar servidor
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app
