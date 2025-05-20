@@ -2,77 +2,72 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import torch
 import torch.nn as nn
+from torchvision import transforms
 from PIL import Image
-import torchvision.transforms as transforms
 
-# Configuración de la app
+# Inicializa app Flask y CORS
 app = Flask(__name__)
-CORS(app)
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
+CORS(app)  # Permitir peticiones de cualquier origen (o define origins)
 
-# Clases del modelo (ajusta si cambian)
-class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+# Dispositivo
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Arquitectura ligera usada en el entrenamiento
-class EmotionCNN(nn.Module):
-    def __init__(self, num_classes):
-        super(EmotionCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(64 * 12 * 12, 128)
-        self.fc2 = nn.Linear(128, num_classes)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.3)
+# Clases detectadas
+clases = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+
+# Define arquitectura ligera
+class EmotionNet(nn.Module):
+    def __init__(self):
+        super(EmotionNet, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(48 * 48 * 3, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, len(clases))
+        )
 
     def forward(self, x):
-        x = self.pool(self.relu(self.conv1(x)))      # Salida: (32, 24, 24)
-        x = self.pool(self.relu(self.conv2(x)))      # Salida: (64, 12, 12)
-        x = x.view(-1, 64 * 12 * 12)
-        x = self.dropout(self.relu(self.fc1(x)))
-        x = self.fc2(x)
-        return x
+        return self.fc(x)
 
-# Preparar modelo
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = EmotionCNN(num_classes=len(class_labels))
-model.load_state_dict(torch.load("emotion_model_ligero.pth", map_location=device))
-model.to(device)
+# Cargar modelo
+model = EmotionNet()
+model.load_state_dict(torch.load('modelo_ligero.pth', map_location=device))
 model.eval()
+model.to(device)
 
-# Transformaciones de imagen
+# Transformación de imagen
 transform = transforms.Compose([
-    transforms.Grayscale(num_output_channels=1),
     transforms.Resize((48, 48)),
     transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
 ])
 
-# Ruta de predicción
+# Ruta raíz
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({"message": "API de reconocimiento de emociones activa."})
+
+# Endpoint /predict
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
-        return jsonify({'error': 'No se recibió ninguna imagen'}), 400
+        return jsonify({'error': 'No se recibió imagen'}), 400
 
     file = request.files['file']
-
-    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        return jsonify({'error': 'Formato de imagen no válido'}), 400
-
     try:
-        image = Image.open(file.stream).convert('L')
-        image = transform(image).unsqueeze(0).to(device)
+        img = Image.open(file.stream).convert('RGB')
+    except:
+        return jsonify({'error': 'Archivo no es una imagen válida'}), 400
 
-        with torch.no_grad():
-            output = model(image)
-            _, predicted = torch.max(output, 1)
-            emotion = class_labels[predicted.item()]
+    img_tensor = transform(img).unsqueeze(0).to(device)
 
-        return jsonify({'emocion': emotion})
+    with torch.no_grad():
+        outputs = model(img_tensor)
+        _, pred = torch.max(outputs, 1)
+        emocion = clases[pred.item()]
 
-    except Exception as e:
-        return jsonify({'error': f'Error al procesar la imagen: {str(e)}'}), 500
+    return jsonify({'emocion': emocion})
 
-# Iniciar servidor
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=5000)
