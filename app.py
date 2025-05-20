@@ -71,7 +71,3 @@ def predict():
         return jsonify({'emocion': predicted_emotion})
     except Exception as e:
         return jsonify({'error': f'Error al procesar la imagen: {str(e)}'}), 500
-
-# Iniciar servidor
-if __name__ == '__main__':
-    app
