@@ -5,12 +5,11 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 
-# Configuración
 app = Flask(__name__)
-CORS(app, origins="*")  # Permitir todas las solicitudes (o específica si prefieres)
+CORS(app)
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
 
-# Modelo CNN
+# ----- Modelo CNN -----
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
         super(EmotionCNN, self).__init__()
@@ -32,15 +31,15 @@ class EmotionCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-# Clases
+# ----- Clases -----
 class_labels = ["Feliz", "Triste", "Enojado", "Sorprendido", "Neutral"]
 
-# Cargar modelo
+# ----- Cargar modelo solo una vez -----
 model = EmotionCNN(num_classes=len(class_labels))
-model.load_state_dict(torch.load("emotion_model.pth", map_location="cpu"))
+model.load_state_dict(torch.load("emotion_model.pth", map_location=torch.device("cpu")))
 model.eval()
 
-# Transformación de imagen
+# ----- Transformaciones -----
 transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((48, 48)),
@@ -48,26 +47,23 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-# Ruta de predicción
-@app.route('/predict', methods=['POST'])
+# ----- Ruta de predicción -----
+@app.route("/predict", methods=["POST"])
 def predict():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No se recibió una imagen'}), 400
+    if "file" not in request.files:
+        return jsonify({"error": "No se recibió una imagen"}), 400
 
-    file = request.files['file']
-
+    file = request.files["file"]
     if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        return jsonify({'error': 'Formato de imagen no válido'}), 400
+        return jsonify({"error": "Formato de imagen no válido"}), 400
 
     try:
-        image = Image.open(file.stream).convert('L')
+        image = Image.open(file.stream).convert("L")
         image = transform(image).unsqueeze(0)
-
         with torch.no_grad():
             output = model(image)
-            _, pred = torch.max(output, 1)
-            predicted_emotion = class_labels[pred.item()]
-
-        return jsonify({'emocion': predicted_emotion})
+            _, predicted = torch.max(output, 1)
+            emotion = class_labels[predicted.item()]
+        return jsonify({"emocion": emotion})
     except Exception as e:
-        return jsonify({'error': f'Error al procesar la imagen: {str(e)}'}), 500
+        return jsonify({"error": f"Error al procesar la imagen: {str(e)}"}), 500
