@@ -4,17 +4,11 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
-import io
 
 # ----- Inicializar Flask -----
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    # tu lógica para manejar la imagen y predecir
-    return jsonify({'result': 'Predicción aquí'})
-    
 # ----- Definir modelo -----
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
