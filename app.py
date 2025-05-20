@@ -9,7 +9,7 @@ import os
 
 # Inicializa app Flask y CORS
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Dispositivo
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,22 +30,22 @@ class EmotionCNN(nn.Module):
         self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
-        x = self.pool(self.relu(self.conv1(x)))
-        x = self.pool(self.relu(self.conv2(x)))
+        x = self.pool(self.relu(self.conv1(x)))  # (32, 24, 24)
+        x = self.pool(self.relu(self.conv2(x)))  # (64, 12, 12)
         x = x.view(-1, 64 * 12 * 12)
         x = self.dropout(self.relu(self.fc1(x)))
         x = self.fc2(x)
         return x
 
-# Descargar modelo si no existe
-if not os.path.exists('modelo_ligero.pth'):
+# Descargar modelo desde Google Drive si no existe
+model_path = 'modelo_ligero.pth'
+if not os.path.exists(model_path):
     url = 'https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3'
-    gdown.download(url, 'modelo_ligero.pth', quiet=False)
+    gdown.download(url, model_path, quiet=False)
 
-# Inicializar modelo
-num_classes = len(clases)
-model = EmotionCNN(num_classes).to(device)
-model.load_state_dict(torch.load('modelo_ligero.pth', map_location=device))
+# Cargar modelo
+model = EmotionCNN(num_classes=len(clases)).to(device)
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
 # Transformación de imagen
@@ -60,7 +60,7 @@ transform = transforms.Compose([
 def index():
     return jsonify({"message": "API de reconocimiento de emociones activa."})
 
-# Endpoint /predict
+# Endpoint de predicción
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
@@ -81,6 +81,6 @@ def predict():
 
     return jsonify({'emocion': emocion})
 
-# Para correr localmente
+# Para ejecutar localmente
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
