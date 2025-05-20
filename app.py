@@ -5,18 +5,19 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 
-# ----- Inicializar Flask -----
+# Configuración
 app = Flask(__name__)
 CORS(app)
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
 
-# ----- Definir modelo -----
+# Modelo CNN
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
         super(EmotionCNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.fc1 = nn.Linear(128 * 6 * 6, 256)
         self.fc2 = nn.Linear(256, num_classes)
         self.relu = nn.ReLU()
@@ -31,15 +32,15 @@ class EmotionCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-# ----- Clases de emociones -----
+# Clases
 class_labels = ["Feliz", "Triste", "Enojado", "Sorprendido", "Neutral"]
 
-# ----- Cargar modelo -----
+# Cargar modelo
 model = EmotionCNN(num_classes=len(class_labels))
-model.load_state_dict(torch.load("emotion_model.pth", map_location=torch.device('cpu')))
+model.load_state_dict(torch.load("emotion_model.pth", map_location="cpu"))
 model.eval()
 
-# ----- Transformaciones -----
+# Transformación de imagen
 transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((48, 48)),
@@ -47,23 +48,30 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-# ----- Ruta de predicción -----
+# Ruta de predicción
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
         return jsonify({'error': 'No se recibió una imagen'}), 400
 
     file = request.files['file']
-    image = Image.open(file.stream).convert('L')
-    image = transform(image).unsqueeze(0)
 
-    with torch.no_grad():
-        output = model(image)
-        _, pred = torch.max(output, 1)
-        predicted_emotion = class_labels[pred.item()]
+    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        return jsonify({'error': 'Formato de imagen no válido'}), 400
 
-    return jsonify({'emocion': predicted_emotion})
+    try:
+        image = Image.open(file.stream).convert('L')
+        image = transform(image).unsqueeze(0)
 
-# ----- Iniciar en Render -----
+        with torch.no_grad():
+            output = model(image)
+            _, pred = torch.max(output, 1)
+            predicted_emotion = class_labels[pred.item()]
+
+        return jsonify({'emocion': predicted_emotion})
+    except Exception as e:
+        return jsonify({'error': f'Error al procesar la imagen: {str(e)}'}), 500
+
+# Iniciar servidor
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
