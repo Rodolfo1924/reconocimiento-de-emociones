@@ -1,92 +1,86 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
+from torchvision import transforms
 from PIL import Image
-import io
-import cv2
-import numpy as np
-from ultralytics import YOLO
+import gdown
+import os
 
-# ------------------ CONFIGURACIÓN ------------------
+# Inicializa app Flask y CORS
 app = Flask(__name__)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# ------------------ MODELO DE EMOCIONES ------------------
+# Dispositivo
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# Clases detectadas
+clases = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+
+# Modelo CNN
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
         super(EmotionCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.fc1 = nn.Linear(128 * 6 * 6, 256)
-        self.fc2 = nn.Linear(256, num_classes)
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(64 * 12 * 12, 128)
+        self.fc2 = nn.Linear(128, num_classes)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
-        x = self.pool(self.relu(self.conv1(x)))
-        x = self.pool(self.relu(self.conv2(x)))
-        x = self.pool(self.relu(self.conv3(x)))
-        x = x.view(-1, 128 * 6 * 6)
+        x = self.pool(self.relu(self.conv1(x)))  # (32, 24, 24)
+        x = self.pool(self.relu(self.conv2(x)))  # (64, 12, 12)
+        x = x.view(-1, 64 * 12 * 12)
         x = self.dropout(self.relu(self.fc1(x)))
         x = self.fc2(x)
         return x
 
-# ------------------ MODELO DE EMOCIONES ------------------
-emotion_classes = ['Felicidad', 'Enojo', 'Tristeza', 'Sorpresa', 'Neutral']  # <-- 5 clases
-emotion_model = EmotionCNN(num_classes=len(emotion_classes))
-emotion_model.load_state_dict(torch.load("emotion_model.pth", map_location=device))
-emotion_model.to(device).eval()
+# Descargar modelo desde Google Drive si no existe
+model_path = 'modelo_ligero.pth'
+if not os.path.exists(model_path):
+    url = 'https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3'
+    gdown.download(url, model_path, quiet=False)
 
+# Cargar modelo
+model = EmotionCNN(num_classes=len(clases)).to(device)
+model.load_state_dict(torch.load(model_path, map_location=device))
+model.eval()
 
-# ------------------ MODELO YOLO PERSONALIZADO ------------------
-yolo_model = YOLO('yolov5n.pt')
-yolo_model.conf = 0.4  # Umbral de confianza (ajusta si hay falsos positivos)
-
-# ------------------ TRANSFORMACIÓN DE IMAGEN PARA EMOTIONCNN ------------------
+# Transformación de imagen
 transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
     transforms.Resize((48, 48)),
-    transforms.Grayscale(),
-    transforms.ToTensor()
+    transforms.ToTensor(),
 ])
 
-# ------------------ ENDPOINT ------------------
+# Ruta raíz
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({"message": "API de reconocimiento de emociones activa."})
+
+# Endpoint de predicción
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
-        return jsonify({'error': 'No se recibió archivo'}), 400
+        return jsonify({'error': 'No se recibió imagen'}), 400
 
     file = request.files['file']
-    image = Image.open(io.BytesIO(file.read())).convert("RGB")
-    img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    try:
+        img = Image.open(file.stream).convert('RGB')
+    except:
+        return jsonify({'error': 'Archivo no es una imagen válida'}), 400
 
-    # YOLO detección
-    results = yolo_model(img_cv)
-    detecciones = results.xyxy[0].cpu().numpy()
+    img_tensor = transform(img).unsqueeze(0).to(device)
 
-    emociones_detectadas = []
+    with torch.no_grad():
+        outputs = model(img_tensor)
+        _, pred = torch.max(outputs, 1)
+        emocion = clases[pred.item()]
 
-    for det in detecciones:
-        x1, y1, x2, y2, _, _ = map(int, det[:6])
-        rostro = img_cv[y1:y2, x1:x2]
+    return jsonify({'emocion': emocion})
 
-        if rostro.size == 0:
-            continue
-
-        rostro_pil = Image.fromarray(cv2.cvtColor(rostro, cv2.COLOR_BGR2RGB)).convert("L")
-        tensor = transform(rostro_pil).unsqueeze(0).to(device)
-
-        with torch.no_grad():
-            salida = emotion_model(tensor)
-            pred = torch.argmax(salida, dim=1).item()
-            emociones_detectadas.append(emotion_classes[pred])
-
-    return jsonify({
-        "emociones": emociones_detectadas if emociones_detectadas else ["No se detectaron rostros"]
-    })
-
-# ------------------ INICIAR ------------------
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+# Para ejecutar localmente
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
