@@ -33,7 +33,7 @@ class NanoEmotionCNN(nn.Module):
 
 # Carga directa del modelo ya subido (NO usar gdown en Render Free)
 model = NanoEmotionCNN(num_classes=len(clases)).to(device)
-model.load_state_dict(torch.load("emotion_model_ligero1.pth", map_location=device))
+model.load_state_dict(torch.load("emotion_model_ligero2.pth", map_location=device))
 model.eval()
 
 # Transformación de imagen
