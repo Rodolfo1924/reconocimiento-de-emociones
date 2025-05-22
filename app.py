@@ -13,7 +13,7 @@ CORS(app)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Etiquetas
-clases = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+clases = ['enojado', 'disgusto', 'ansiedad', 'agusto', 'neutral', 'triste', 'sorprendido']
 
 # Modelo ultra ligero
 class NanoEmotionCNN(nn.Module):
