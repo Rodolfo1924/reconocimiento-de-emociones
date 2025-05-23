@@ -16,18 +16,23 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 clases = ['enojado', 'disgusto', 'ansiedad', 'agusto', 'neutral', 'triste', 'sorprendido']
 
 # Modelo ultra ligero
-class NanoEmotionCNN(nn.Module):
+class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
-        super(NanoEmotionCNN, self).__init__()
-        self.conv = nn.Conv2d(1, 4, kernel_size=3, padding=1)
-        self.pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(4, num_classes)
+        super(EmotionCNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 8, kernel_size=3, padding=1)
+        self.pool1 = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(8, 16, kernel_size=3, padding=1)
+        self.pool2 = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.fc = nn.Linear(16, num_classes)
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = self.relu(self.conv(x))  # (4, 48, 48)
-        x = self.pool(x)             # (4, 1, 1)
-        x = x.view(-1, 4)            # (batch_size, 4)
+        x = self.relu(self.conv1(x))
+        x = self.pool1(x)
+        x = self.relu(self.conv2(x))
+        x = self.pool2(x)
+        x = x.view(-1, 16)
         x = self.fc(x)
         return x
 
