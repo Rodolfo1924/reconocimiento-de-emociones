@@ -8,7 +8,7 @@ import os
 
 # Inicializa app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, supports_credentials=True, origins="*")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
