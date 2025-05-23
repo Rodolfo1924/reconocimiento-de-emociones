@@ -18,7 +18,7 @@ clases = ['enojado', 'disgusto', 'ansiedad', 'agusto', 'neutral', 'triste', 'sor
 # Modelo ultra ligero
 class NanoEmotionCNN(nn.Module):
     def __init__(self, num_classes):
-        super(EmotionCNN, self).__init__()
+        super(NanoEmotionCNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 8, kernel_size=3, padding=1)
         self.pool1 = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(8, 16, kernel_size=3, padding=1)
