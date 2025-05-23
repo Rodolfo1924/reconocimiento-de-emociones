@@ -16,7 +16,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 clases = ['enojado', 'disgusto', 'ansiedad', 'agusto', 'neutral', 'triste', 'sorprendido']
 
 # Modelo ultra ligero
-class EmotionCNN(nn.Module):
+class NanoEmotionCNN(nn.Module):
     def __init__(self, num_classes):
         super(EmotionCNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 8, kernel_size=3, padding=1)
