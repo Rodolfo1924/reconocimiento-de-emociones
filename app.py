@@ -4,48 +4,41 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
-import gdown
 import os
 
-# Inicializa app Flask y CORS
+# Inicializa app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, supports_credentials=True, origins="*")
 
-# Dispositivo
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Clases detectadas
-clases = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+# Etiquetas
+clases = ['enojado', 'disgusto', 'ansiedad', 'agusto', 'neutral', 'triste', 'sorprendido']
 
-# Modelo CNN
-class EmotionCNN(nn.Module):
+# Modelo ultra ligero
+class NanoEmotionCNN(nn.Module):
     def __init__(self, num_classes):
-        super(EmotionCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(64 * 12 * 12, 128)
-        self.fc2 = nn.Linear(128, num_classes)
+        super(NanoEmotionCNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 8, kernel_size=3, padding=1)
+        self.pool1 = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(8, 16, kernel_size=3, padding=1)
+        self.pool2 = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.fc = nn.Linear(16, num_classes)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
-        x = self.pool(self.relu(self.conv1(x)))  # (32, 24, 24)
-        x = self.pool(self.relu(self.conv2(x)))  # (64, 12, 12)
-        x = x.view(-1, 64 * 12 * 12)
-        x = self.dropout(self.relu(self.fc1(x)))
-        x = self.fc2(x)
+        x = self.relu(self.conv1(x))
+        x = self.pool1(x)
+        x = self.relu(self.conv2(x))
+        x = self.pool2(x)
+        x = x.view(-1, 16)
+        x = self.fc(x)
         return x
 
-# Descargar modelo desde Google Drive si no existe
-model_path = 'modelo_ligero.pth'
-if not os.path.exists(model_path):
-    url = 'https://drive.google.com/uc?id=1tmARiH54eT78OAEP8RoRzjG-KAE25QY3'
-    gdown.download(url, model_path, quiet=False)
-
-# Cargar modelo
-model = EmotionCNN(num_classes=len(clases)).to(device)
-model.load_state_dict(torch.load(model_path, map_location=device))
+# Carga directa del modelo ya subido (NO usar gdown en Render Free)
+model = NanoEmotionCNN(num_classes=len(clases)).to(device)
+model.load_state_dict(torch.load("emotion_model_ligero3.pth", map_location=device))
 model.eval()
 
 # Transformación de imagen
@@ -55,32 +48,30 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# Ruta raíz
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({"message": "API de reconocimiento de emociones activa."})
+@app.route('/')
+def home():
+    return jsonify({"message": "API de reconocimiento de emociones lista"})
 
-# Endpoint de predicción
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
-        return jsonify({'error': 'No se recibió imagen'}), 400
+        return jsonify({'error': 'No se recibió ninguna imagen'}), 400
 
-    file = request.files['file']
     try:
-        img = Image.open(file.stream).convert('RGB')
-    except:
-        return jsonify({'error': 'Archivo no es una imagen válida'}), 400
+        img = Image.open(request.files['file']).convert('RGB')
+        img_tensor = transform(img).unsqueeze(0).to(device)
 
-    img_tensor = transform(img).unsqueeze(0).to(device)
+        with torch.no_grad():
+            outputs = model(img_tensor)
+            _, pred = torch.max(outputs, 1)
+            emocion = clases[pred.item()]
 
-    with torch.no_grad():
-        outputs = model(img_tensor)
-        _, pred = torch.max(outputs, 1)
-        emocion = clases[pred.item()]
+        return jsonify({'emocion': emocion})
 
-    return jsonify({'emocion': emocion})
+    except Exception as e:
+        return jsonify({'error': f'Error procesando imagen: {str(e)}'}), 500
 
-# Para ejecutar localmente
+# Ejecutar localmente
 if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=5000)
