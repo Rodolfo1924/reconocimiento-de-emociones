@@ -102,10 +102,14 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
+    if not email or not password:
+        return jsonify({'message': 'Faltan email o contraseña.'}), 400
+
     user = users_collection.find_one({'email': email})
     if not user:
         return jsonify({'message': 'Usuario no encontrado.'}), 404
 
+    # Aquí asumimos que user['password'] está guardado como bytes
     if bcrypt.checkpw(password.encode('utf-8'), user['password']):
         return jsonify({'message': 'Inicio de sesión exitoso.'}), 200
     else:
