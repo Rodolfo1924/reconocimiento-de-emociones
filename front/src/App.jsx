@@ -5,7 +5,7 @@ import EmotionPredictor from "./components/EmotionPredictor";
 import axios from 'axios';
 import logo from './assets/logoexpresia.png'; // Asegúrate de que el logo esté en src/assets/
 
-const BACKEND_URL = "https://localhost:500";
+const BACKEND_URL = "http://localhost:5000";
 
 const App = () => {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -18,7 +18,7 @@ const App = () => {
 
   const handleLogin = async (email, password) => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+      const res = await axios.post(${BACKEND_URL}/api/auth/login, {
         email,
         password,
       });
@@ -33,7 +33,7 @@ const App = () => {
 
   const handleRegister = async (email, password) => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/auth/register`, {
+      const res = await axios.post(${BACKEND_URL}/api/auth/register, {
         email,
         password,
       });
