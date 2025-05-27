@@ -5,7 +5,7 @@ import EmotionPredictor from "./components/EmotionPredictor";
 import axios from 'axios';
 import logo from './assets/logoexpresia.png'; // Asegúrate de que el logo esté en src/assets/
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "https://reconocimiento-de-emociones.onrender.com";
 
 const App = () => {
   const [showWelcome, setShowWelcome] = useState(true);
