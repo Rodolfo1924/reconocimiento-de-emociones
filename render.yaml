@@ -1,10 +1,11 @@
 gunicorn -c gunicorn.conf.py app:app
 
-
 services:
   - type: web
-    name: reconocimiento-de-emociones
+    name: expresia-api
     env: python
     buildCommand: ""
-    startCommand: gunicorn app:app
-    plan: free
+    startCommand: "python app.py"
+    envVars:
+      - key: MONGO_URI
+        value: "mongodb+srv://diegos:fljlGV3PxfuL4Wn7@reconocimiento.dfyanw8.mongodb.net/?retryWrites=true&w=majority&appName=reconocimiento"
