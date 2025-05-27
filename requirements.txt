@@ -5,3 +5,4 @@ torchvision
 pillow
 gunicorn
 pymongo
+bcrypt
