@@ -1,28 +1,22 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+const mongoose = require("mongoose");
+
+// 1. Crear la app express primero
 const app = express();
-const authRoutes = require("./routes/auth");
 
-app.use(express.json());
-app.use("/api/auth", authRoutes);
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
-});
-
-
-const app = express();
+// 2. Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Rutas
+// 3. Rutas
+const authRoutes = require("./routes/auth");
 const mensajeRouter = require("./routes/mensaje");
+
+app.use("/api/auth", authRoutes);
 app.use("/api/mensajes", mensajeRouter);
 
-// Conexión con MongoDB Atlas
+// 4. Conexión a MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -30,5 +24,8 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log("✅ Conectado a MongoDB Atlas"))
 .catch((err) => console.error("❌ Error conectando a MongoDB", err));
 
+// 5. Servidor escuchando en puerto
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Servidor escuchando en puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en puerto ${PORT}`);
+});
