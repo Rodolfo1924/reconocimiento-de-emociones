@@ -5,7 +5,9 @@ import EmotionPredictor from "./components/EmotionPredictor";
 import axios from 'axios';
 import logo from './assets/logoexpresia.png';
 
-const BACKEND_URL = "https://reconocimiento-de-emociones-5pqv.onrender.com";
+// Variables de entorno
+const FLASK_BACKEND_URL = process.env.REACT_APP_FLASK_BACKEND_URL;
+const NODE_BACKEND_URL = process.env.REACT_APP_NODE_BACKEND_URL;
 
 const App = () => {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -18,7 +20,7 @@ const App = () => {
 
   const handleLogin = async (email, password) => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+      const res = await axios.post(`${NODE_BACKEND_URL}/api/auth/login`, {
         email,
         password,
       });
@@ -34,7 +36,7 @@ const App = () => {
 
   const handleRegister = async (email, password) => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/auth/register`, {
+      const res = await axios.post(`${NODE_BACKEND_URL}/api/auth/register`, {
         email,
         password,
       });
@@ -84,7 +86,7 @@ const App = () => {
           <h3>Emoción detectada: {prediction}</h3>
         </div>
       )}
-      <EmotionPredictor onPredict={handlePrediction} backendUrl={BACKEND_URL} />
+      <EmotionPredictor onPredict={handlePrediction} backendUrl={FLASK_BACKEND_URL} />
       <button
         onClick={handleBackToLogin}
         className="bg-gray-500 text-white p-2 rounded mt-6"
