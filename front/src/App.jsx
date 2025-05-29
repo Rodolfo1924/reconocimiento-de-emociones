@@ -3,7 +3,7 @@ import './styles.css';
 import Login from "./components/Login";
 import EmotionPredictor from "./components/EmotionPredictor";
 import axios from 'axios';
-import logo from './assets/logoexpresia.png';
+import logo from './assets/logoexpresia.webp';
 
 // Variables de entorno
 const FLASK_BACKEND_URL = process.env.REACT_APP_FLASK_BACKEND_URL;
