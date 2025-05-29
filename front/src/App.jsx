@@ -64,7 +64,7 @@ const App = () => {
       <div className="welcome-container text-center">
         <img src={logo} alt="Logo de Expresia" className="logo mb-6 animate-pulse" />
         <h1 className="text-5xl font-bold mb-4 text-glow">¡Bienvenido a Expresia!</h1>
-        <p className="text-xl mb-6 text-neon">Explora el Lenguaje de tus Emociones</p>
+        <p className="text-xl mb-6 text-neon">Herramienta para psicólogos que analizan las emociones de sus pacientes</p>
         <button
           onClick={handleStart}
           className="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 text-lg animate-bounce"
