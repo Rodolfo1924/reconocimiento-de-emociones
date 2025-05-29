@@ -70,7 +70,7 @@ const EmotionPredictor = ({ onPredict, backendUrl = 'http://localhost:5000' }) =
 
   return (
     <div className="p-4 max-w-md mx-auto text-center">
-      <h1 className="text-2xl font-bold mb-4">Analiza tu Emoción</h1>
+      <h1 className="text-2xl font-bold mb-4">Analizar Emoción</h1>
       <div className="mb-4">
         <button
           onClick={toggleWebcam}
