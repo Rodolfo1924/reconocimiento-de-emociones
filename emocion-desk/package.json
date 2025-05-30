@@ -1,0 +1,22 @@
+{
+  "name": "emocion-desk",
+  "version": "1.0.0",
+  "description": "App de escritorio para reconocimiento de emociones",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^36.3.2",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "form-data": "^4.0.2",
+    "node-cron": "^4.0.7",
+    "node-webcam": "^0.8.2"
+  }
+}
