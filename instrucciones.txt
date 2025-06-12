@@ -1,0 +1,1 @@
+Al descargar el proyecto a local descargar los paquetes de electron e inicializar el proyecto, no se puede subir aqui por el tamaño
